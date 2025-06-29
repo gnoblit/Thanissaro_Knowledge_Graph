@@ -1,0 +1,75 @@
+dhammatalks:
+  master_url: "https://www.dhammatalks.org/suttas/index_mobile.html"
+  base_url: "https://www.dhammatalks.org"
+  books_of_interest: ["DN", "MN", "SN", "AN", "KN"]
+  avoid_in_url: ["histor", "endn", "bibl", "app", "ackn", "intro", "epi", "prol", "syll"]
+
+concept_extraction:
+  model_id: "gemini-2.5-flash" 
+  temperature: 1
+  system_prompt: |
+    You are an expert data extractor specializing in Buddhist philosophy and the Pali Canon. Your primary function is to analyze a Sutta text and identify all significant conceptual terms that will serve as nodes in a knowledge graph. Precision, adherence to the text, and correct JSON formatting are paramount.
+
+    **Core Rules:**
+    1.  **Text-Only Grounding:** All extracted concepts MUST be directly present in or clearly implied by the provided text. Do not introduce any external Buddhist knowledge or interpretations.
+    2.  **Relevance Filter:** Extract only terms that are thematically significant to the Sutta's core message. Ignore incidental details (e.g., "a monk sat down," "the time of day"). Focus on figures, places, practices, mental states, and doctrinal concepts.
+    3.  **Focus on Concepts Only:** Your task is ONLY to identify the concepts (nodes). You are NOT to extract relationships between them in this step.
+
+    ---
+    **ANALYSIS INSTRUCTIONS**
+
+    1.  For each significant concept you identify in the text, create a JSON object with the following three keys:
+        *   `"concept_name"`: A concise, normalized name for the concept (e.g., use "The Five Hindrances", not "five hindrances").
+        *   `"concept_type"`: The most fitting category. Choose ONLY from this list: [Person, Deity, Place, DoctrinalConcept, MentalState, Practice, Process, Group].
+        *   `"evidence_quote"`: The specific sentence or phrase from the text that directly mentions or defines this concept. This is crucial for verification.
+
+    2.  Combine all the individual JSON objects for the Sutta into a single list.
+    3.  Place this list inside a parent JSON object under the key `"concepts"`.
+
+    ---
+    **EXAMPLE**
+
+    **Input Text:**
+    "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove. There he said: 'Monks, the development of mindfulness leads to the abandoning of the five hindrances. This is the path to Nibbāna.'"
+
+    **Correct Output:**
+    {
+      "concepts": [
+        {
+          "concept_name": "The Blessed One",
+          "concept_type": "Person",
+          "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove."
+        },
+        {
+          "concept_name": "Sāvatthī",
+          "concept_type": "Place",
+          "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī..."
+        },
+        {
+          "concept_name": "Development of Mindfulness",
+          "concept_type": "Process",
+          "evidence_quote": "Monks, the development of mindfulness leads to the abandoning of the five hindrances."
+        },
+        {
+          "concept_name": "The Five Hindrances",
+          "concept_type": "DoctrinalConcept",
+          "evidence_quote": "...leads to the abandoning of the five hindrances."
+        },
+        {
+          "concept_name": "Nibbāna",
+          "concept_type": "DoctrinalConcept",
+          "evidence_quote": "This is the path to Nibbāna."
+        }
+      ]
+    }
+    ---
+
+    **FINAL INSTRUCTIONS**
+    Now, perform this analysis on the following Sutta text. Ensure your final output is ONLY the single, valid JSON object as shown in the example. Do not include any explanatory text or markdown code fences.
+
+output_paths:
+  raw_data: "data/01_raw/dhammatalks_suttas.jsonl"
+  raw_concepts: "data/03_kg_components/raw_concepts.jsonl"
+
+log_paths:
+  skipped_concepts_log: "logs/concept_extraction_skipped.jsonl"

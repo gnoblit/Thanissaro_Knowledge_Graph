@@ -1,0 +1,25 @@
+[project]
+name = "thanissaro-knowledge-graph"
+version = "0.1.0"
+description = "A project to build (by data-driven discovery) a knowledge graph of the Buddhist Pali Canon."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "polars",
+    "beautifulsoup4",
+    "jupyter",
+    "ipython",
+    "ipykernel",
+    "google-genai",
+    "tqdm",
+    "jsonlines",
+    "python-dotenv"
+
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
