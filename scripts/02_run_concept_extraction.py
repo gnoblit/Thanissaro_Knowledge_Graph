@@ -78,6 +78,8 @@ def run_extraction_pipeline(strategy, config, project_root):
     )
 
     skipped_suttas_log = []
+    dt = datetime.now()
+    dt = dt.strftime("%Y-%m-%d_%H-%M")
 
     # --- 5. Main Extraction Loop ---
     for sutta in tqdm(suttas_to_process, desc=f"Extracting ({strategy} mode)"):
@@ -97,8 +99,9 @@ def run_extraction_pipeline(strategy, config, project_root):
             
             result_record = {
                 'sutta_id': sutta_identifier, 'model_id': model_id,
-                'datetime': datetime.now().isoformat(),
-                'concepts': parsed_data.model_dump()['concepts']
+                'time_of_run': dt,
+                'concepts': parsed_data.model_dump()['concepts'],
+                'mode': strategy
             }
             with jsonlines.open(output_path, mode='a') as writer:
                 writer.write(result_record)
