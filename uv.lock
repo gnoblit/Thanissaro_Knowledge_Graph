@@ -1378,7 +1378,10 @@ dependencies = [
     { name = "jsonlines" },
     { name = "jupyter" },
     { name = "polars" },
+    { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "requests" },
     { name = "tqdm" },
 ]
 
@@ -1391,7 +1394,10 @@ requires-dist = [
     { name = "jsonlines" },
     { name = "jupyter" },
     { name = "polars" },
+    { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "requests" },
     { name = "tqdm" },
 ]
 
