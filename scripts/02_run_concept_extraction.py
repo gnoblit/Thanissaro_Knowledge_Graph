@@ -2,11 +2,12 @@ import os
 
 import jsonlines
 import json
+from pydantic import ValidationError  
 
 from tqdm import tqdm
 from datetime import datetime
 import time
-
+import sys
 from google import genai
 from google.genai.types import GenerateContentConfig
 
@@ -14,7 +15,7 @@ from utils.data_helpers import get_unprocessed_items
 from utils.llm_helpers import initialize_gemini_client, SAFETY_SETTINGS
 
 from utils.config_helpers import load_config
-
+from utils.schemas import SuttaConcepts  
 
 
 def run_extraction_pipeline(config):
@@ -31,7 +32,9 @@ def run_extraction_pipeline(config):
     model_config = GenerateContentConfig(
         temperature=cfg['temperature'],
         safety_settings=SAFETY_SETTINGS,
-        system_instruction=system_prompt
+        system_instruction=system_prompt,
+        response_mime_type="application/json",
+        response_schema=SuttaConcepts,
     )
     client = initialize_gemini_client(cfg)
 
@@ -67,27 +70,36 @@ def run_extraction_pipeline(config):
                 continue
                 
             # Generate response
-            response = client.models.generate_content(
+            response_text = client.models.generate_content(
                 model=model_id,
                 config=model_config,
                 contents=sutta_body
                 ).text
             
             # Simple cleaning
-            cleaned_text = response.strip().replace("```json", "").replace("```", "").strip()
-            extracted_data = json.loads(cleaned_text)
+            parsed_data = SuttaConcepts.model_validate_json(response_text)
 
             result_record = {
                 'sutta_id': sutta_identifier,
                 'model_id': model_id,
                 'datetime': dt,
-                'extracted_data': extracted_data,
+                'extracted_data': parsed_data.model_dump()['concepts'],
             }
 
             with jsonlines.open(out_cfg['raw_concepts'], mode='a') as writer:
                 writer.write(result_record)
 
             time.sleep(.01) 
+
+        except (ValidationError, json.JSONDecodeError) as e:
+            # Catches both malformed JSON and data that doesn't fit the schema
+            reason = f"Schema validation failed: {e}"
+            print(f"\nSKIPPING {sutta_identifier}: {reason}")
+            skipped_suttas_log.append({
+                "sutta_id": sutta_identifier,
+                "reason": reason,
+                "raw_response": response_text if 'response_text' in locals() else "N/A"
+            })
 
         except Exception as e:
             skipped_suttas_log.append({
@@ -97,6 +109,11 @@ def run_extraction_pipeline(config):
                 "reason":  f"Processing error: {str(e)}",
             })
             print(f"An error occurred while processing {sutta_identifier}: {e}")
+            if "RESOURCE_EXHAUSTED" in str(e):
+                # If Resource Exhausted, interrupt function.
+                print("Resource exhausted, wait to rerun.")
+                sys.exit(1)
+
             time.sleep(1)
 
     # -- Logs --
