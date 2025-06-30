@@ -1,25 +1,28 @@
 import yaml
 import os
-
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from utils.config_helpers import load_config 
 
 from data_acquisition.scraper import run_scraper
 
 def main():
     """Loads configuration and runs the scraper."""
-    # Load config file
-    config_path = os.path.join(project_root, 'config', 'settings.yaml')
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
+    # --- Setup ---
+    # Use the helper to load config and get project_root
+    config_dict = load_config()
+    config = config_dict['config']
+    project_root = config_dict['project_root']
 
-    # Ensure data directory exists
+    # --- Path Management ---
+    # Construct the absolute path for the output file
     raw_data_path = os.path.join(project_root, config['output_paths']['raw_data'])
-    os.makedirs(os.path.dirname(raw_data_path), exist_ok=True)
     
-    # Run the main scraping logic
-    run_scraper(config)
+    # The scraper function will handle os.makedirs
     
-    print("Scraping process completed.")
+    # --- Run Scraper ---
+    # Pass both the config and the absolute output path
+    run_scraper(config, raw_data_path)
+    
+    print("\nScraping process completed.")
 
 if __name__ == "__main__":
     main()

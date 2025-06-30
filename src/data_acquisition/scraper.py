@@ -71,8 +71,14 @@ def parse_sutta_page(html_content):
         "body": sutta_body,
     }
 
-def run_scraper(config):
-    """Main function to run the full scraping and parsing pipeline."""
+def run_scraper(config, output_path):
+    """
+    Main function to run the full scraping and parsing pipeline.
+
+    Args:
+        config (dict): The application configuration dictionary.
+        output_path (str): The absolute path to the output .jsonl file.
+    """
     dhammatalks_config = config['dhammatalks']
     sutta_links = get_sutta_links(
         dhammatalks_config['master_url'],
@@ -85,16 +91,14 @@ def run_scraper(config):
         print("No sutta links found. Exiting.")
         return
 
-    # Use a relative path from the project root for the output file
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    output_path = os.path.join(project_root, config['output_paths']['raw_data'])
+    # The calling script now provides the absolute output_path.
+    # No need to calculate project_root here anymore.
     
     # Ensure the directory exists before writing
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     print(f"Scraping suttas and saving to {output_path}...")
     
-    # Initialize a counter for the unique ID
     sutta_counter = 1
     
     # Overwrite the file from scratch to ensure UID consistency
@@ -108,15 +112,8 @@ def run_scraper(config):
                 parsed_data = parse_sutta_page(response.text)
                 
                 if parsed_data:
-                    # Merge initial info with parsed data
-                    final_record = {**link_info, **parsed_data}
-                    
-                    # Add ID
-                    final_record['sutta_id'] = sutta_counter
-                    
+                    final_record = {**link_info, **parsed_data, 'sutta_id': sutta_counter}
                     writer.write(final_record)
-                    
-                    # Increment the counter only after a successful write
                     sutta_counter += 1
                 
                 sleep(0.1)
