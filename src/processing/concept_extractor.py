@@ -30,7 +30,7 @@ class ConceptExtractor:
         else:
             raise ValueError(f"Invalid extraction strategy: {self.strategy}")
         
-        self.system_prompt = self.extraction_config['base_prompt_beginning']  + self.extraction_config[prompt_key] + self.extraction_config['base_prompt_end']
+        self.system_prompt = self.extraction_config['base_prompt_beginning']  + self.extraction_config['prompt_key'] + self.extraction_config['base_prompt_end']
         self.response_schema_class = SuttaConceptsDiscovery if self.strategy == 'discovery' else SuttaConceptsFixed
         
         # Get paths
