@@ -13,7 +13,10 @@ dependencies = [
     "google-genai",
     "tqdm",
     "jsonlines",
-    "python-dotenv"
+    "python-dotenv",
+    "pyyaml",
+    "requests",
+    "pydantic"
 
 ]
 
