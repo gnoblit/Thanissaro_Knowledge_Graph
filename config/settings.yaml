@@ -20,7 +20,10 @@ concept_extraction:
 
     1.  For each significant concept you identify in the text, create a JSON object with the following three keys:
         *   `"concept_name"`: A concise, normalized name for the concept (e.g., use "The Five Hindrances", not "five hindrances").
-        *   `"concept_type"`: The most fitting category. Choose ONLY from this list: [Person, Deity, Place, DoctrinalConcept, MentalState, Practice, Process, Group].
+        *   `"concept_type"`: A concise and logical category for the concept that you must generate yourself. **Do not use a predefined list.** Instead, derive the type by following these principles:
+            1.  **Functional Analysis:** Determine the concept's role in the text. Is it a person/being (`Person`, `Deity`)? A location (`Place`, `CosmicRealm`)? A core teaching (`DoctrinalConcept`)? An internal experience (`MentalState`)? A specific action or method (`Practice`)? A sequence of events or causality (`Process`)?
+            2.  **Consistency is Key:** Strive for consistency across the entire text. If you classify one city as `Place`, classify all other cities and groves as `Place`.
+            3.  **Use PascalCase:** The type name must be in PascalCase (e.g., `DoctrinalConcept`, `MentalState`).
         *   `"evidence_quote"`: The specific sentence or phrase from the text that directly mentions or defines this concept. This is crucial for verification.
 
     2.  Combine all the individual JSON objects for the Sutta into a single list.
@@ -33,6 +36,7 @@ concept_extraction:
     "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove. There he said: 'Monks, the development of mindfulness leads to the abandoning of the five hindrances. This is the path to Nibbāna.'"
 
     **Correct Output:**
+    (Note: In this case, the discovered types may be similar to the old list, but they were generated based on principle, not chosen from a fixed set.)
     {
       "concepts": [
         {
@@ -47,7 +51,7 @@ concept_extraction:
         },
         {
           "concept_name": "Development of Mindfulness",
-          "concept_type": "Process",
+          "concept_type": "Practice",
           "evidence_quote": "Monks, the development of mindfulness leads to the abandoning of the five hindrances."
         },
         {
@@ -61,7 +65,7 @@ concept_extraction:
           "evidence_quote": "This is the path to Nibbāna."
         }
       ]
-    }
+    }    
     ---
 
     **FINAL INSTRUCTIONS**
