@@ -19,11 +19,6 @@ class SuttaConceptsDiscovery(BaseModel):
     """A list of discovered concepts for a single Sutta."""
     concepts: List[ConceptDiscovery]
 
-class ConceptExtractionToolDiscovery(BaseModel):
-    """Tool for the LLM to use for the 'discovery' prompting strategy."""
-    sutta_concepts: SuttaConceptsDiscovery = Field(..., description="The list of concepts extracted from the Sutta.")
-
-
 # --- Schemas for Fixed-List Mode ---
 
 class ConceptFixed(BaseModel):
@@ -35,7 +30,3 @@ class ConceptFixed(BaseModel):
 class SuttaConceptsFixed(BaseModel):
     """A list of fixed-type concepts for a single Sutta."""
     concepts: List[ConceptFixed]
-
-class ConceptExtractionToolFixed(BaseModel):
-    """Tool for the LLM to use for the 'fixed-list' prompting strategy."""
-    sutta_concepts: SuttaConceptsFixed = Field(..., description="The list of concepts extracted from the Sutta.")
