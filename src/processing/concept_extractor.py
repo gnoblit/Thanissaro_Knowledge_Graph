@@ -24,13 +24,13 @@ class ConceptExtractor:
 
         # Dynamically select prompt and schema
         if self.strategy == 'discovery':
-            prompt_key = 'discovery_prompt'
+            prompt_key = 'discovery_instructions'
         elif self.strategy == 'fixed':
-            prompt_key = 'fixed_prompt'
+            prompt_key = 'fixed_instructions'
         else:
             raise ValueError(f"Invalid extraction strategy: {self.strategy}")
         
-        self.system_prompt = self.extraction_config['base_prompt_beginning']  + self.extraction_config['prompt_key'] + self.extraction_config['base_prompt_end']
+        self.system_prompt = self.extraction_config['base_prompt_beginning']  + self.extraction_config[prompt_key] + self.extraction_config['base_prompt_end']
         self.response_schema_class = SuttaConceptsDiscovery if self.strategy == 'discovery' else SuttaConceptsFixed
         
         # Get paths

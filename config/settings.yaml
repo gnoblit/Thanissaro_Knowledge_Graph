@@ -18,7 +18,7 @@ concept_extraction:
     3.  **Focus on Concepts Only:** Your task is ONLY to identify the concepts (nodes). You are NOT to extract relationships between them in this step.
 
     ---
-discovery_instruction: |
+  discovery_instruction: |
     ## ANALYSIS INSTRUCTIONS
 
     1.  For each significant concept you identify in the text, create a JSON object with the following three keys:
@@ -32,7 +32,7 @@ discovery_instruction: |
     3.  Place this list inside a parent JSON object under the key `"concepts"`.
 
     ---
-fixed_instructions: |
+  fixed_instructions: |
     ## ANALYSIS INSTRUCTIONS
 
     1.  For each significant concept you identify in the text, create a JSON object with the following three keys:
@@ -43,7 +43,7 @@ fixed_instructions: |
     3.  Place this list inside a parent JSON object under the key `"concepts"`.
 
     ---
-base_prompt_end: |
+  base_prompt_end: |
     ## EXAMPLE
 
     **Input Text:**
