@@ -1,20 +1,16 @@
-import yaml
-import os
-from utils.config_helpers import load_config 
-
+from utils.config_helpers import ConfigManager
 from data_acquisition.scraper import run_scraper
 
 def main():
     """Loads configuration and runs the scraper."""
     # --- Setup ---
-    # Use the helper to load config and get project_root
-    config_dict = load_config()
-    config = config_dict['config']
-    project_root = config_dict['project_root']
-
+    # Use the ConfigManager to load config and handle paths
+    cfg_manager = ConfigManager()
+    config = cfg_manager.config
+    
     # --- Path Management ---
-    # Construct the absolute path for the output file
-    raw_data_path = os.path.join(project_root, config['output_paths']['raw_data'])
+    # Get the absolute path for the output file from the manager
+    raw_data_path = cfg_manager.get_path('output_paths.raw_data')
     
     # The scraper function will handle os.makedirs
     

@@ -1,24 +1,30 @@
 import yaml
 import os
 
-def load_config():
+class ConfigManager:
     """
-    Finds project root then loads configuration from YAML file.
-    Returns:
-            return_dict (dict): 'project_root', 'config_path', 'config' keys
+    Manages loading configuration and constructing absolute paths for the project.
     """
-    # Find the project root by going up two directories
-    # from this file's location (src/utils -> src -> project_root)
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    
-    config_path = os.path.join(project_root, 'config', 'settings.yaml')
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
+    def __init__(self, config_filename='config/settings.yaml'):
+        # Find the project root by going up two directories
+        # from this file's location (src/utils -> src -> project_root)
+        self.project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
+        config_path = os.path.join(self.project_root, config_filename)
+        with open(config_path, 'r') as f:
+            self.config = yaml.safe_load(f)
 
-    return_dict = {
-        'project_root': project_root,
-        'config_path': config_path,
-        'config': config
-    }
-    
-    return return_dict
+    def get_path(self, key_path, a_format=None):
+        """
+        Retrieves a path from config, constructs the absolute path, 
+        and optionally formats it.
+        """
+        keys = key_path.split('.')
+        path_template = self.config
+        for key in keys:
+            path_template = path_template[key]
+        
+        if a_format:
+            path_template = path_template.format(**a_format)
+
+        return os.path.join(self.project_root, path_template)
