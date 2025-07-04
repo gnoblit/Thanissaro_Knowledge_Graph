@@ -1,11 +1,15 @@
 import yaml
 import os
+from dotenv import load_dotenv
 
 class ConfigManager:
     """
     Manages loading configuration and constructing absolute paths for the project.
     """
     def __init__(self, config_filename='config/settings.yaml'):
+        # Load API keys
+        load_dotenv()
+        
         # Find the project root by going up two directories
         # from this file's location (src/utils -> src -> project_root)
         self.project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
