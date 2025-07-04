@@ -17,7 +17,8 @@ dependencies = [
     "pyyaml",
     "requests",
     "pydantic",
-    "openai" # For deepseek
+    "openai",
+    "sentence-transformers"
 
 ]
 
@@ -54,7 +55,6 @@ omit = [
     "src/processing/__init__.py",
     "src/utils/__init__.py",
     "src/main.py",
-    "src/data_acquisition/scraper.py", # Network-dependent, hard to unit test
 ]
 
 [tool.coverage.report]
