@@ -1,6 +1,5 @@
 from utils.config_helpers import ConfigManager
-from data_acquisition.scraper import run_scraper
-
+from data_acquisition.scraper import SuttaScraper
 def main():
     """Loads configuration and runs the scraper."""
     # --- Setup ---
@@ -16,7 +15,8 @@ def main():
     
     # --- Run Scraper ---
     # Pass both the config and the absolute output path
-    run_scraper(config, raw_data_path)
+    scraper = SuttaScraper(config)
+    scraper.run(raw_data_path)
     
     print("\nScraping process completed.")
 
