@@ -1,5 +1,6 @@
 import os
 import jsonlines
+import json 
 
 def get_processed_ids(processed_path: str, id_key: str, model_id: str, mode: str) -> set:
     """
@@ -20,12 +21,18 @@ def get_processed_ids(processed_path: str, id_key: str, model_id: str, mode: str
         return processed_ids
         
     with jsonlines.open(processed_path) as reader:
-        for record in reader:
-            # Only count a record as "processed" if it matches the current run's settings
-            if record.get('model_id') == model_id and record.get('mode') == mode:
-                if record.get(id_key):
-                    processed_ids.add(record[id_key])
+        # Wrap in a try-except to handle corrupted lines in the file.
+        for line_num, record in enumerate(reader, 1):
+            try:
+                # Only count a record as "processed" if it matches the current run's settings
+                if record.get('model_id') == model_id and record.get('mode') == mode:
+                    if record.get(id_key):
+                        processed_ids.add(record[id_key])
+            except (TypeError, json.JSONDecodeError):
+                print(f"Warning: Skipping corrupted or invalid line {line_num} in {processed_path}")
+                continue
     return processed_ids
+    
 
 def get_unprocessed_items(source_path: str, source_id_key: str, processed_ids_set: set) -> list:
     """
