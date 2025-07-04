@@ -3,7 +3,7 @@ name = "thanissaro-knowledge-graph"
 version = "0.1.0"
 description = "A project to build (by data-driven discovery) a knowledge graph of the Buddhist Pali Canon."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.9"
 dependencies = [
     "polars",
     "beautifulsoup4",
