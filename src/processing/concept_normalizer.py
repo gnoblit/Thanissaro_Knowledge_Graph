@@ -45,26 +45,23 @@ class ConceptNormalizer(BaseNormalizer):
         
         # 2. Load and deduplicate concepts
         print(f"Loading concepts from {input_path}...")
-        unique_concepts = {}
+        all_concepts = []
         with jsonlines.open(input_path) as reader:
             for sutta_record in reader:
-                for concept in sutta_record.get('concepts', []):
-                    if concept['concept_name'] not in unique_concepts:
-                        unique_concepts[concept['concept_name']] = concept
+                all_concepts.extend(sutta_record.get('concepts', []))
         
-        concepts = list(unique_concepts.values())
-        print(f"Found {len(concepts)} unique concept names to process.")
-        
+        print(f"Found {len(all_concepts)} concept instances to process.")
+                
         # 3. Prepare corpus based on mode
         print(f"Preparing corpus in '{self.normalization_mode}' mode...")
         corpus = []
         if self.normalization_mode == 'name':
-            corpus = [c['concept_name'] for c in concepts]
+            corpus = [c['concept_name'] for c in all_concepts]
         elif self.normalization_mode == 'hybrid':
-            corpus = [f"{c['concept_name']} [SEP] {c['evidence_quote']}" for c in concepts]
+            corpus = [f"{c['concept_name']} [SEP] {c['evidence_quote']}" for c in all_concepts]
         else:
             raise ValueError(f"Invalid normalization mode: {self.normalization_mode}")
             
         # 4. Map corpus index back to the original concept object
-        concept_map = {i: concept for i, concept in enumerate(concepts)}
+        concept_map = {i: concept for i, concept in enumerate(all_concepts)}
         return corpus, concept_map
