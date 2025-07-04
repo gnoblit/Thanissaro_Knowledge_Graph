@@ -16,8 +16,9 @@ def mock_cfg_manager():
             'discovery_instructions': 'DISCOVERY',
             'fixed_instructions': 'FIXED',
             'base_prompt_end': 'END',
-            'output_path_template': 'data/test_{mode}.jsonl',
-            'log_path_template': 'logs/test_{mode}.jsonl',
+            # MODIFIED: Update mock templates
+            'output_path_template': 'data/test_{mode}_{model_id}.jsonl',
+            'log_path_template': 'logs/test_{mode}_{model_id}.jsonl',
         },
         'output_paths': {
             'raw_data': 'data/raw_test.jsonl'

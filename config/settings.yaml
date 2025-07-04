@@ -5,11 +5,11 @@ dhammatalks:
   avoid_in_url: ["histor", "endn", "bibl", "app", "ackn", "intro", "epi", "prol", "syll"]
 
 concept_extraction:
-  model_id: "gemini-2.5-flash"
+  model_id: "deepseek-chat" # deepseek-chat or gemini-2.5-flash
   mode: "discovery"
   temperature: 1
-  output_path_template: "data/03_kg_components/raw_concepts_{mode}.jsonl"
-  log_path_template: "logs/concept_extraction_skipped_{mode}.jsonl"
+  output_path_template: "data/03_kg_components/raw_concepts_{mode}_{model_id}.jsonl"
+  log_path_template: "logs/concept_extraction_skipped_{mode}_{model_id}.jsonl"
   base_prompt_beginning: |
     You are an expert data extractor specializing in Buddhist philosophy and the Pali Canon. Your primary function is to analyze a Sutta text and identify all significant conceptual terms that will serve as nodes in a knowledge graph. Precision, adherence to the text, and correct JSON formatting are paramount.
 
@@ -87,7 +87,6 @@ concept_extraction:
     Now, perform this analysis on the following Sutta text. Ensure your final output is ONLY the single, valid JSON object as shown in the example. Do not include any explanatory text or markdown code fences.
 output_paths:
   raw_data: "data/01_raw/dhammatalks_suttas.jsonl"
-  raw_concepts: "data/03_kg_components/raw_concepts.jsonl"
 
 log_paths:
   skipped_concepts_log: "logs/concept_extraction_skipped.jsonl"

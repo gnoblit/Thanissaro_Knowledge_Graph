@@ -36,7 +36,7 @@ class ConceptExtractor:
         self.response_schema_class = SuttaConceptsDiscovery if self.strategy == 'discovery' else SuttaConceptsFixed
         
         # Get paths
-        format_args = {'mode': self.strategy}
+        format_args = {'mode': self.strategy, 'model_id': self.model_id.replace('-', '_').replace('.', '')}
         self.output_path = self.cfg_manager.get_path('concept_extraction.output_path_template', format_args)
         self.log_path = self.cfg_manager.get_path('concept_extraction.log_path_template', format_args)
         self.raw_data_path = self.cfg_manager.get_path('output_paths.raw_data')
