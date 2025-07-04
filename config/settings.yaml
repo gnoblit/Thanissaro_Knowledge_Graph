@@ -87,6 +87,3 @@ concept_extraction:
     Now, perform this analysis on the following Sutta text. Ensure your final output is ONLY the single, valid JSON object as shown in the example. Do not include any explanatory text or markdown code fences.
 output_paths:
   raw_data: "data/01_raw/dhammatalks_suttas.jsonl"
-
-log_paths:
-  skipped_concepts_log: "logs/concept_extraction_skipped.jsonl"
