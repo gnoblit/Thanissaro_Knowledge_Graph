@@ -33,7 +33,7 @@ class SuttaScraper:
         """Scrapes the index page to find all relevant sutta URLs."""
         print(f"Fetching master list from {self.master_url}...")
         try:
-            response = requests.get(self.master_url)
+            response = requests.get(self.master_url, timeout=30)
             response.raise_for_status()
             response.encoding = "UTF-8"
             soup = BeautifulSoup(response.text, "html.parser")
@@ -123,7 +123,7 @@ class SuttaScraper:
         with jsonlines.open(output_path, mode='w') as writer:
             for link_info in tqdm(sutta_links, desc="Scraping Suttas"):
                 try:
-                    response = requests.get(link_info['url'])
+                    response = requests.get(link_info['url'], timeout=30)
                     response.raise_for_status()
                     response.encoding = "UTF-8"
 
