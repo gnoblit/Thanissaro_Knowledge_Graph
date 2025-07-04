@@ -21,9 +21,42 @@ dependencies = [
 
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock",
+    "pytest-cov", # For checking test coverage
+]
+
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests"] # Tell pytest where to find tests
+addopts = [
+    "-ra",                        # Report extra test summary info
+    "--strict-markers",           # Be strict about markers
+    "--cov=src",                  # Measure coverage for the src directory
+    "--cov-report=term-missing",  # Show which lines are not covered
+]
+
+[tool.coverage.run]
+source = ["src"] # Explicitly define the source for coverage
+omit = [
+    "src/__init__.py",
+    "src/data_acquisition/__init__.py",
+    "src/graph_creation/__init__.py",
+    "src/processing/__init__.py",
+    "src/utils/__init__.py",
+    "src/main.py",
+    "src/data_acquisition/scraper.py", # Network-dependent, hard to unit test
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80 # Optional: Enforce a minimum coverage percentage
