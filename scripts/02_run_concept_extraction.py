@@ -1,23 +1,21 @@
-import argparse
 from utils.config_helpers import ConfigManager
 from processing.concept_extractor import ConceptExtractor
 
 def main():
-    """Parses command-line arguments to select and run an extraction strategy."""
-    parser = argparse.ArgumentParser(description="Run concept extraction with a specified strategy.")
-    parser.add_argument("strategy", choices=['discovery', 'fixed'], help="The extraction strategy to use: 'discovery' or 'fixed'.")
-    args = parser.parse_args()
-
-    print(f"--- Running Concept Extraction in '{args.strategy.upper()}' Mode ---")
-
+    """Initializes configuration and runs the concept extraction pipeline."""
     # 1. Initialize configuration
     cfg_manager = ConfigManager()
+    mode = cfg_manager.config['concept_extraction']['mode']
+    model_id = cfg_manager.config['concept_extraction']['model_id']
+    
+    print(f"--- Running Concept Extraction in '{mode.upper()}' Mode for '{model_id}' Model ---")
 
     # 2. Initialize and run the extraction pipeline
-    extractor = ConceptExtractor(cfg_manager, args.strategy)
+    # The extractor now gets the mode from the config itself.
+    extractor = ConceptExtractor(cfg_manager)
     extractor.run_pipeline()
     
-    print(f"\nConcept extraction process ('{args.strategy}' mode) completed.")
+    print(f"\nConcept extraction process ('{mode}' mode) completed.")
 
 if __name__ == "__main__":
     main()

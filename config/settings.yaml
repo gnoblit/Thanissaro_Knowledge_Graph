@@ -5,7 +5,8 @@ dhammatalks:
   avoid_in_url: ["histor", "endn", "bibl", "app", "ackn", "intro", "epi", "prol", "syll"]
 
 concept_extraction:
-  model_id: "gemini-2.5-flash" 
+  model_id: "gemini-2.5-flash"
+  mode: "discovery"
   temperature: 1
   output_path_template: "data/03_kg_components/raw_concepts_{mode}.jsonl"
   log_path_template: "logs/concept_extraction_skipped_{mode}.jsonl"

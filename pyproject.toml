@@ -16,7 +16,8 @@ dependencies = [
     "python-dotenv",
     "pyyaml",
     "requests",
-    "pydantic"
+    "pydantic",
+    "openai" # For deepseek
 
 ]
 

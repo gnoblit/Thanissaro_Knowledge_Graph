@@ -7,20 +7,22 @@ import jsonlines
 from tqdm import tqdm
 from pydantic import ValidationError
 
-from utils.data_helpers import get_unprocessed_items
+from utils.data_helpers import get_processed_ids, get_unprocessed_items 
 from utils.schemas import SuttaConceptsDiscovery, SuttaConceptsFixed
-from utils.llm_helpers import GeminiClient
+from utils.llm_helpers import get_llm_client 
 
 class ConceptExtractor:
     """
     Orchestrates the concept extraction process from suttas.
     """
-    def __init__(self, cfg_manager, strategy):
+    def __init__(self, cfg_manager):
         self.cfg_manager = cfg_manager
         self.config = cfg_manager.config
-        self.strategy = strategy
+
         self.extraction_config = self.config['concept_extraction']
+        self.strategy = self.extraction_config['mode'] 
         self.model_id = self.extraction_config['model_id']
+
 
         # Dynamically select prompt and schema
         if self.strategy == 'discovery':
@@ -40,10 +42,10 @@ class ConceptExtractor:
         self.raw_data_path = self.cfg_manager.get_path('output_paths.raw_data')
 
         # Initialize the LLM client
-        self.llm_client = GeminiClient(
-            config=self.extraction_config,
-            response_schema=self.response_schema_class,
-            system_prompt=self.system_prompt
+        self.llm_client = get_llm_client(
+            extraction_config=self.extraction_config,
+            system_prompt=self.system_prompt,
+            response_schema_class=self.response_schema_class
         )
 
     def run_pipeline(self):
@@ -56,13 +58,21 @@ class ConceptExtractor:
         os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
-        return get_unprocessed_items(
-            source_path=self.raw_data_path,
+        # 1. Get the set of IDs that have already been processed WITH THE CURRENT CONFIG
+        processed_ids = get_processed_ids(
             processed_path=self.output_path,
-            source_id_key='sutta_id',
-            processed_id_key='sutta_id'
+            id_key='sutta_id',
+            model_id=self.model_id,
+            mode=self.strategy
         )
 
+        # 2. Get all source items that are not in the processed set
+        return get_unprocessed_items(
+            source_path=self.raw_data_path,
+            source_id_key='sutta_id',
+            processed_ids_set=processed_ids
+        )
+    
     def _process_suttas(self, suttas_to_process):
         """Main extraction loop for processing suttas."""
         skipped_suttas_log = []
