@@ -73,6 +73,27 @@ def test_initialization_invalid_mode(mock_cfg_manager):
     with pytest.raises(ValueError, match="Invalid extraction strategy: invalid_mode"):
         ConceptExtractor(mock_cfg_manager)
 
+# --- NEW TEST TO VERIFY THE FIX ---
+@patch('processing.concept_extractor.get_llm_client')
+def test_path_sanitization_handles_slashes(mock_get_llm, mock_cfg_manager):
+    """Test that model_id with slashes is correctly sanitized for file paths."""
+    # Arrange: Use a model_id with a slash
+    mock_cfg_manager.config['concept_extraction']['model_id'] = 'google/gemini-1.5-pro'
+    extractor = ConceptExtractor(mock_cfg_manager)
+
+    # Act: Trigger the path generation by accessing the property
+    _ = extractor.output_path
+    
+    # Assert: Check that the format_args passed to the mocked get_path are correct
+    expected_sanitized_id = 'google_gemini_1_5_pro'
+    expected_format_args = {'mode': 'discovery', 'model_id': expected_sanitized_id}
+    
+    # We check the arguments of the *last* call to the mock
+    mock_cfg_manager.get_path.assert_called_with(
+        'concept_extraction.output_path_template',
+        expected_format_args
+    )
+
 # --- Tests for Core Logic (_process_item) ---
 
 @patch('processing.concept_extractor.get_llm_client')
