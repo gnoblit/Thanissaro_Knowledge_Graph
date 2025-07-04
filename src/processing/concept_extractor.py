@@ -16,22 +16,49 @@ class ConceptExtractor(BaseProcessor):
         self.model_id = self.extraction_config['model_id']
         self.dt_string = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
-        # ... (prompt and schema selection logic remains the same) ...
-        self.system_prompt = ...
-        self.response_schema_class = ...
+        # --- FIX START ---
+        # The following logic replaces the invalid "..." placeholders.
+        # It dynamically builds the prompt and selects the Pydantic schema
+        # based on the extraction mode specified in the config.
 
-        self.llm_client = get_llm_client(...)
+        if self.strategy == 'discovery':
+            instructions = self.extraction_config['discovery_instructions']
+            self.response_schema_class = SuttaConceptsDiscovery
+        elif self.strategy == 'fixed':
+            instructions = self.extraction_config['fixed_instructions']
+            self.response_schema_class = SuttaConceptsFixed
+        else:
+            raise ValueError(f"Invalid extraction strategy: {self.strategy}")
+
+        # Assemble the full system prompt from the config parts
+        self.system_prompt = (
+            f"{self.extraction_config['base_prompt_beginning']}"
+            f"{instructions}"
+            f"{self.extraction_config['base_prompt_end']}"
+        )
+
+        # Initialize the appropriate LLM client with the constructed prompt and schema
+        self.llm_client = get_llm_client(
+            extraction_config=self.extraction_config,
+            system_prompt=self.system_prompt,
+            response_schema_class=self.response_schema_class
+        )
+        # --- FIX END ---
 
     # --- Implementation of abstract methods ---
     def _get_source_path(self) -> str:
         return self.cfg_manager.get_path('output_paths.raw_data')
 
     def _get_output_path(self) -> str:
-        format_args = {'mode': self.strategy, 'model_id': self.model_id.replace('-', '_').replace('.', '')}
+        # Use a sanitized model_id for file paths
+        s_model_id = self.model_id.replace('-', '_').replace('.', '')
+        format_args = {'mode': self.strategy, 'model_id': s_model_id}
         return self.cfg_manager.get_path('concept_extraction.output_path_template', format_args)
 
     def _get_log_path(self) -> str:
-        format_args = {'mode': self.strategy, 'model_id': self.model_id.replace('-', '_').replace('.', '')}
+        # Use a sanitized model_id for file paths
+        s_model_id = self.model_id.replace('-', '_').replace('.', '')
+        format_args = {'mode': self.strategy, 'model_id': s_model_id}
         return self.cfg_manager.get_path('concept_extraction.log_path_template', format_args)
 
     def _get_run_config(self) -> dict:
