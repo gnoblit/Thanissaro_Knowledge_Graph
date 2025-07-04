@@ -56,7 +56,7 @@ This project uses `uv` for package and environment management.
     ```
 
 5.  **Configure API Key:**
-    *   Edit `.env` and set the `GEMIN_API_KEY` to your own.
+    *   Edit `.env` and set the `GEMINI_API_KEY` and/or `DEEPSEEK_API_KEY` to your own.
 
 ## How to Run
 
