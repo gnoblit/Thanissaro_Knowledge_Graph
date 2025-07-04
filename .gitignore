@@ -9,4 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Environmental variables
 .env
+
+# Pytest
+.coverage
+.pytest_cache
