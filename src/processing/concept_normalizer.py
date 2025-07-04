@@ -22,7 +22,8 @@ class ConceptNormalizer(BaseNormalizer):
         """Construct the output path for concept clusters."""
         extraction_model_id = self.extract_config['model_id']
         s_extraction_model = extraction_model_id.replace('-', '_').replace('.', '')
-        s_embedding_model = self.embedding_model_id.replace('/', '_')
+        # FIX: Sanitize the embedding model ID for the path as well for consistency
+        s_embedding_model = self.embedding_model_id.replace('/', '_').replace('-', '_')
 
         format_args = {
             'extraction_model_id': s_extraction_model,
@@ -32,7 +33,13 @@ class ConceptNormalizer(BaseNormalizer):
         return self.cfg_manager.get_path('concept_normalization.output_path_template', format_args)
 
     def _prepare_corpus(self) -> tuple[list, dict]:
-        """Load concepts, deduplicate, and prepare the corpus for embedding."""
+        """
+        Load concepts and prepare the corpus for embedding based on the normalization mode.
+        
+        - In 'name' mode, it deduplicates concepts by name to embed each unique name once.
+        - In 'hybrid' mode, it uses ALL concepts, as the combination of name and
+          evidence quote is considered for clustering.
+        """
         # 1. Get input path
         format_args = {
             'mode': self.extract_config['mode'], 
@@ -40,28 +47,41 @@ class ConceptNormalizer(BaseNormalizer):
         }
         input_path = self.cfg_manager.get_path('concept_extraction.output_path_template', format_args)
         
-        # 2. Load and deduplicate concepts
         print(f"Loading concepts from {input_path}...")
-        unique_concepts = {}
-        with jsonlines.open(input_path) as reader:
-            for sutta_record in reader:
-                for concept in sutta_record.get('concepts', []):
-                    if concept['concept_name'] not in unique_concepts:
-                        unique_concepts[concept['concept_name']] = concept
-        
-        concepts = list(unique_concepts.values())
-        print(f"Found {len(concepts)} unique concept names to process.")
-        
-        # 3. Prepare corpus based on mode
         print(f"Preparing corpus in '{self.normalization_mode}' mode...")
+
         corpus = []
-        if self.normalization_mode == 'name':
-            corpus = [c['concept_name'] for c in concepts]
-        elif self.normalization_mode == 'hybrid':
-            corpus = [f"{c['concept_name']} [SEP] {c['evidence_quote']}" for c in concepts]
+        concepts_to_process = []
+
+        # --- FIX START ---
+        if self.normalization_mode == 'hybrid':
+            # In hybrid mode, we do NOT deduplicate. We process every concept instance
+            # because the evidence quote provides crucial context for clustering.
+            with jsonlines.open(input_path) as reader:
+                for sutta_record in reader:
+                    concepts_to_process.extend(sutta_record.get('concepts', []))
+            
+            print(f"Found {len(concepts_to_process)} total concept instances to process for hybrid mode.")
+            corpus = [f"{c['concept_name']} [SEP] {c['evidence_quote']}" for c in concepts_to_process]
+
+        elif self.normalization_mode == 'name':
+            # In name mode, we deduplicate by concept_name to find canonical concepts.
+            # The original logic is correct for this mode.
+            unique_concepts = {}
+            with jsonlines.open(input_path) as reader:
+                for sutta_record in reader:
+                    for concept in sutta_record.get('concepts', []):
+                        if concept['concept_name'] not in unique_concepts:
+                            unique_concepts[concept['concept_name']] = concept
+            
+            concepts_to_process = list(unique_concepts.values())
+            print(f"Found {len(concepts_to_process)} unique concept names to process for name mode.")
+            corpus = [c['concept_name'] for c in concepts_to_process]
+        
         else:
             raise ValueError(f"Invalid normalization mode: {self.normalization_mode}")
+        # --- FIX END ---
             
         # 4. Map corpus index back to the original concept object
-        concept_map = {i: concept for i, concept in enumerate(concepts)}
+        concept_map = {i: concept for i, concept in enumerate(concepts_to_process)}
         return corpus, concept_map
