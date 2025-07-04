@@ -16,9 +16,7 @@ class ConceptExtractor(BaseProcessor):
         self.model_id = self.extraction_config['model_id']
         self.dt_string = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
-        # --- FIX START ---
-        # The following logic replaces the invalid "..." placeholders.
-        # It dynamically builds the prompt and selects the Pydantic schema
+        # Dynamically builds the prompt and selects the Pydantic schema
         # based on the extraction mode specified in the config.
 
         if self.strategy == 'discovery':
@@ -50,14 +48,14 @@ class ConceptExtractor(BaseProcessor):
         return self.cfg_manager.get_path('output_paths.raw_data')
 
     def _get_output_path(self) -> str:
-        # Use a sanitized model_id for file paths
-        s_model_id = self.model_id.replace('-', '_').replace('.', '')
+        # Use a sanitized model_id for file paths to handle '/', '-', and '.'
+        s_model_id = self.model_id.replace('/', '_').replace('-', '_').replace('.', '')
         format_args = {'mode': self.strategy, 'model_id': s_model_id}
         return self.cfg_manager.get_path('concept_extraction.output_path_template', format_args)
 
     def _get_log_path(self) -> str:
-        # Use a sanitized model_id for file paths
-        s_model_id = self.model_id.replace('-', '_').replace('.', '')
+        # Use a sanitized model_id for file paths to handle '/', '-', and '.'
+        s_model_id = self.model_id.replace('/', '_').replace('-', '_').replace('.', '')
         format_args = {'mode': self.strategy, 'model_id': s_model_id}
         return self.cfg_manager.get_path('concept_extraction.log_path_template', format_args)
 
