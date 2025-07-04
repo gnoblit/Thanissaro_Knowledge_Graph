@@ -32,3 +32,13 @@ class ConfigManager:
             path_template = path_template.format(**a_format)
 
         return os.path.join(self.project_root, path_template)
+    
+def sanitize_for_filename(text: str) -> str:
+    """
+    Replaces characters in a string that are problematic for filenames
+    with underscores.
+    
+    This ensures consistency when generating and reading files based on
+    dynamic values like model IDs.
+    """
+    return text.replace('/', '_').replace('-', '_').replace('.', '')

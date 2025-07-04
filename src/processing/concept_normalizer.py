@@ -1,5 +1,6 @@
 import jsonlines
 from .base_normalizer import BaseNormalizer
+from utils.config_helpers import sanitize_for_filename
 
 class ConceptNormalizer(BaseNormalizer):
     """
@@ -21,11 +22,8 @@ class ConceptNormalizer(BaseNormalizer):
     def _get_output_path(self) -> str:
         """Construct the output path for concept clusters."""
         extraction_model_id = self.extract_config['model_id']
-        s_extraction_model = extraction_model_id.replace('/', '_').replace('-', '_').replace('.', '')
-        
-        # FIX: Sanitize the embedding model ID to ensure consistent and safe filenames.
-        # This replaces both '/' (common in Hugging Face model IDs) and '-' with '_'.
-        s_embedding_model = self.embedding_model_id.replace('/', '_').replace('-', '_').replace('.', '')
+        s_extraction_model = sanitize_for_filename(extraction_model_id)
+        s_embedding_model = sanitize_for_filename(self.embedding_model_id)
 
         format_args = {
             'extraction_model_id': s_extraction_model,
@@ -37,9 +35,10 @@ class ConceptNormalizer(BaseNormalizer):
     def _prepare_corpus(self) -> tuple[list, dict]:
         """Load concepts, deduplicate, and prepare the corpus for embedding."""
         # 1. Get input path
+        sanitized_model_id = sanitize_for_filename(self.extract_config['model_id'])
         format_args = {
             'mode': self.extract_config['mode'], 
-            'model_id': self.extract_config['model_id'].replace('/', '_').replace('-', '_').replace('.', '')
+            'model_id': sanitized_model_id
         }
         input_path = self.cfg_manager.get_path('concept_extraction.output_path_template', format_args)
         

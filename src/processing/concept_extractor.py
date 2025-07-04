@@ -1,6 +1,7 @@
 from .base_processor import BaseProcessor
 from utils.schemas import SuttaConceptsDiscovery, SuttaConceptsFixed
 from utils.llm_helpers import get_llm_client 
+from utils.config_helpers import sanitize_for_filename
 import json
 from pydantic import ValidationError
 from datetime import datetime
@@ -49,13 +50,13 @@ class ConceptExtractor(BaseProcessor):
 
     def _get_output_path(self) -> str:
         # Use a sanitized model_id for file paths to handle '/', '-', and '.'
-        s_model_id = self.model_id.replace('/', '_').replace('-', '_').replace('.', '')
+        s_model_id = sanitize_for_filename(self.model_id)
         format_args = {'mode': self.strategy, 'model_id': s_model_id}
         return self.cfg_manager.get_path('concept_extraction.output_path_template', format_args)
 
     def _get_log_path(self) -> str:
         # Use a sanitized model_id for file paths to handle '/', '-', and '.'
-        s_model_id = self.model_id.replace('/', '_').replace('-', '_').replace('.', '')
+        s_model_id = sanitize_for_filename(self.model_id)
         format_args = {'mode': self.strategy, 'model_id': s_model_id}
         return self.cfg_manager.get_path('concept_extraction.log_path_template', format_args)
 
