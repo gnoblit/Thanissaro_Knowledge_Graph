@@ -5,8 +5,8 @@ dhammatalks:
   avoid_in_url: ["histor", "endn", "bibl", "app", "ackn", "intro", "epi", "prol", "syll"]
 
 concept_extraction:
-  model_id: "deepseek-chat" # deepseek-chat or gemini-2.5-flash
-  mode: "discovery"
+  model_id: "gemini-2.5-flash" # deepseek-chat or gemini-2.5-flash
+  mode: "fixed"
   temperature: 1
   output_path_template: "data/03_kg_components/raw_concepts_{mode}_{model_id}.jsonl"
   log_path_template: "logs/concept_extraction_skipped_{mode}_{model_id}.jsonl"
