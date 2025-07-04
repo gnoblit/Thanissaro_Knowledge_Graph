@@ -39,22 +39,23 @@ class SuttaScraper:
             soup = BeautifulSoup(response.text, "html.parser")
 
             links = soup.find_all("a")
-            link_dicts = []
+            unique_urls = {} 
 
-            for link in set(links):  # Use set to get unique links initially
+            for link in links:
                 href = link.get('href')
                 if href and any(book in href for book in self.books) and not any(av in href for av in self.avoid):
-                    href_split = href.split("/")
-                    link_dicts.append({
-                        "book": href_split[2],
-                        "sub_book": href_split[3] if len(href_split) > 4 else "None",
-                        "url": f"{self.base_url}{href}",
-                        "sutta_id_text": re.sub(r" +", " ", unicodedata.normalize("NFKD", link.get_text()))
-                    })
+                    full_url = f"{self.base_url}{href}"
+                    if full_url not in unique_urls: # Deduplicate by the full URL
+                        href_split = href.split("/")
+                        unique_urls[full_url] = {
+                            "book": href_split[2],
+                            "sub_book": href_split[3] if len(href_split) > 4 else "None",
+                            "url": full_url,
+                            "sutta_id_text": re.sub(r" +", " ", unicodedata.normalize("NFKD", link.get_text()))
+                        }
 
-            # Sort the list to ensure a deterministic order and stable IDs
+            link_dicts = list(unique_urls.values())
             link_dicts.sort(key=lambda x: x['url'])
-
             print(f"Found and sorted {len(link_dicts)} sutta links to process.")
             return link_dicts
         except requests.RequestException as e:
