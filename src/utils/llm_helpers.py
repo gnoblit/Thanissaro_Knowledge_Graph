@@ -1,3 +1,5 @@
+# src/utils/llm_helpers.py
+
 import os
 import json
 from abc import ABC, abstractmethod
@@ -55,9 +57,9 @@ class GeminiClient(BaseLLMClient):
         return  response_text
     
 
-class OpenAIClient:
+class OpenAIClient(BaseLLMClient):
     """
-    A client to configure and interact with the Google Gemini API.
+    A client to configure and interact with the DeepSeek API (OpenAI-compatible).
     """
     def __init__(self, config, system_prompt):        
         self.client = OpenAI(api_key=os.getenv("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com")
@@ -65,9 +67,9 @@ class OpenAIClient:
         self.system_prompt = system_prompt
 
 
-    def generate_content(self, sutta_body):
+    def generate_content(self, sutta_body: str) -> str:
         """
-        Generates content using the configured Gemini model.
+        Generates content using the configured DeepSeek model.
         """
         # First define messages
         messages = [
@@ -81,7 +83,8 @@ class OpenAIClient:
             response_format={"type": "json_object"}
         )
         
-        response_text = json.loads(response.choices[0].message.content)
+        # Return the raw JSON string from the API, do not parse it here.
+        response_text = response.choices[0].message.content
         return response_text
 
 # Define factory to move between clients

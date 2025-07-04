@@ -1,5 +1,5 @@
 import jsonlines
-from src.utils.data_helpers import get_processed_ids, get_unprocessed_items
+from utils.data_helpers import get_processed_ids, get_unprocessed_items
 
 def test_get_processed_ids(tmp_path):
     """
