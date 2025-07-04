@@ -2,16 +2,17 @@ import os
 import jsonlines
 import json 
 
-def get_processed_ids(processed_path: str, id_key: str, model_id: str, mode: str) -> set:
+def get_processed_ids(processed_path: str, id_key: str, **run_config) -> set:
     """
-    Loads IDs from a processed file, filtering by the specific model and mode used.
-    This ensures that a run with a new model/mode will re-process all items.
+    Loads IDs from a processed file, filtering by the specific run configuration.
+    This ensures that a run with new settings (e.g., a different model, mode, or
+    any other parameter) will re-process all items.
     
     Args:
         processed_path (str): Path to the .jsonl file of already processed items.
         id_key (str): The key in the processed file that holds the unique ID.
-        model_id (str): The model ID to filter by.
-        mode (str): The mode ('discovery' or 'fixed') to filter by.
+        **run_config: A dictionary of key-value pairs that define a unique run.
+                      A record is considered "processed" if it matches all of these pairs.
 
     Returns:
         set: A set of unique IDs that have been processed with the given settings.
@@ -24,10 +25,13 @@ def get_processed_ids(processed_path: str, id_key: str, model_id: str, mode: str
         # Wrap in a try-except to handle corrupted lines in the file.
         for line_num, record in enumerate(reader, 1):
             try:
-                # Only count a record as "processed" if it matches the current run's settings
-                if record.get('model_id') == model_id and record.get('mode') == mode:
-                    if record.get(id_key):
-                        processed_ids.add(record[id_key])
+                # A record is a match if all key-value pairs in run_config
+                # exist and are equal in the record.
+                is_match = all(record.get(key) == value for key, value in run_config.items())
+                
+                if is_match and record.get(id_key):
+                    processed_ids.add(record[id_key])
+
             except (TypeError, json.JSONDecodeError):
                 print(f"Warning: Skipping corrupted or invalid line {line_num} in {processed_path}")
                 continue
