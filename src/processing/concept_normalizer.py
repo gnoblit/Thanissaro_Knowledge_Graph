@@ -21,11 +21,11 @@ class ConceptNormalizer(BaseNormalizer):
     def _get_output_path(self) -> str:
         """Construct the output path for concept clusters."""
         extraction_model_id = self.extract_config['model_id']
-        s_extraction_model = extraction_model_id.replace('-', '_').replace('.', '')
+        s_extraction_model = extraction_model_id.replace('/', '_').replace('-', '_').replace('.', '')
         
         # FIX: Sanitize the embedding model ID to ensure consistent and safe filenames.
         # This replaces both '/' (common in Hugging Face model IDs) and '-' with '_'.
-        s_embedding_model = self.embedding_model_id.replace('/', '_').replace('-', '_')
+        s_embedding_model = self.embedding_model_id.replace('/', '_').replace('-', '_').replace('.', '')
 
         format_args = {
             'extraction_model_id': s_extraction_model,
@@ -39,7 +39,7 @@ class ConceptNormalizer(BaseNormalizer):
         # 1. Get input path
         format_args = {
             'mode': self.extract_config['mode'], 
-            'model_id': self.extract_config['model_id'].replace('-', '_').replace('.', '')
+            'model_id': self.extract_config['model_id'].replace('/', '_').replace('-', '_').replace('.', '')
         }
         input_path = self.cfg_manager.get_path('concept_extraction.output_path_template', format_args)
         
