@@ -83,7 +83,8 @@ class OpenAIClient(BaseLLMClient):
             response_format={"type": "json_object"}
         )
         
-        # Return the raw JSON string from the API, do not parse it here.
+        # BUG FIX: Return the raw JSON string, do not parse it here.
+        # The calling function (ConceptExtractor) is responsible for parsing.
         response_text = response.choices[0].message.content
         return response_text
 
