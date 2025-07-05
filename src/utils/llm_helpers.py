@@ -6,16 +6,17 @@ from abc import ABC, abstractmethod
 
 from google import genai
 from google.genai.types import GenerateContentConfig, HarmBlockThreshold, HarmCategory, SafetySetting
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 
-# Improve modularity by imposing an abstract base class
+class RateLimitException(Exception):
+    """Custom exception for all API rate limit or resource exhaustion errors."""
+    pass
+
 class BaseLLMClient(ABC):
     """Abstract base class for all LLM clients to ensure consistent interface."""
     @abstractmethod
     def generate_content(self, text_body: str) -> str:
         pass
-
-
 
 class GeminiClient(BaseLLMClient):
     """
@@ -49,13 +50,20 @@ class GeminiClient(BaseLLMClient):
         """
         Generates content using the configured Gemini model.
         """
-        response_text = self.client.models.generate_content(
-            model=self.model_id,
-            config=self.model_config,
-            contents=sutta_body
-        ).text
-        return  response_text
-    
+        try:
+            response_text = self.client.models.generate_content(
+                model=self.model_id,
+                config=self.model_config,
+                contents=sutta_body
+            ).text
+            return  response_text
+        except Exception as e:
+            if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
+                # Re-raise as a generic RateLimitException to be caught upstream.
+                raise RateLimitException(f"Gemini API resource exhausted or rate limit hit: {e}") from e
+            else:
+                # If it's a different error, re-raise it to not hide other issues.
+                raise    
 
 class OpenAIClient(BaseLLMClient):
     """
@@ -77,16 +85,20 @@ class OpenAIClient(BaseLLMClient):
             {"role": "user", "content": sutta_body}
         ]
 
-        response = self.client.chat.completions.create(
-            model=self.model_id,
-            messages=messages,
-            response_format={"type": "json_object"}
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_id,
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
         
-        # BUG FIX: Return the raw JSON string, do not parse it here.
-        # The calling function (ConceptExtractor) is responsible for parsing.
-        response_text = response.choices[0].message.content
-        return response_text
+            # Return the raw JSON string, do not parse it here.
+            # The calling function (ConceptExtractor) is responsible for parsing.
+            response_text = response.choices[0].message.content
+            return response_text
+        
+        except RateLimitError as e:
+            raise RateLimitException("OpenAI/DeepSeek API rate limit was hit.") from e
 
 # Define factory to move between clients
 def get_llm_client(extraction_config, system_prompt, response_schema_class) -> BaseLLMClient:

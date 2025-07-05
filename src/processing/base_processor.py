@@ -1,4 +1,5 @@
 import os
+import sys  
 import time
 import jsonlines
 from abc import ABC, abstractmethod
@@ -6,6 +7,7 @@ from tqdm import tqdm
 from datetime import datetime
 
 from utils.data_helpers import get_processed_ids, get_unprocessed_items
+from utils.llm_helpers import RateLimitException
 
 class BaseProcessor(ABC):
     """
@@ -91,8 +93,19 @@ class BaseProcessor(ABC):
                 
                 time.sleep(0.5) # Optional: rate limiting
 
+            except RateLimitException as e:
+                # This is a fatal, script-ending error. Handle exit here.
+                print(f"\n\nFATAL ERROR: The process was halted due to an API rate limit or resource exhaustion.", file=sys.stderr)
+                print(f"Details: {e}", file=sys.stderr)
+                if skipped_items_log:
+                    print(f"Saving log for {len(skipped_items_log)} items that were skipped before this fatal error to {self.log_path}", file=sys.stderr)
+                    with jsonlines.open(self.log_path, mode='a') as writer:
+                        writer.write_all(skipped_items_log)
+                print("Exiting with error code 1.", file=sys.stderr)
+                sys.exit(1)
+
             except Exception as e:
-                # A more generic error handler
+                # This is a non-fatal, per-item error. Log it and continue the loop.
                 print(f"\nSKIPPING {item_id}: {e}")
                 skipped_items_log.append({"item_id": item_id, "reason": str(e)})
 
