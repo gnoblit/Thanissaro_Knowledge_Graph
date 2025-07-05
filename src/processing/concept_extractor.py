@@ -9,12 +9,14 @@ from datetime import datetime
 class ConceptExtractor(BaseProcessor):
     def __init__(self, cfg_manager):
         # Base class __init__ will handle path setup
-        super().__init__(cfg_manager)
 
         # Specific setup for concept extraction
-        self.extraction_config = self.config['concept_extraction']
+        self.extraction_config = cfg_manager.config['concept_extraction']
         self.strategy = self.extraction_config['mode'] 
         self.model_id = self.extraction_config['model_id']
+        
+        super().__init__(cfg_manager)
+        
         self.dt_string = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
         # Dynamically builds the prompt and selects the Pydantic schema
