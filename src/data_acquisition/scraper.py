@@ -2,6 +2,7 @@ import os
 import re
 import unicodedata
 from time import sleep
+from urllib.parse import urlparse, urlunparse 
 
 import jsonlines
 import requests
@@ -44,13 +45,33 @@ class SuttaScraper:
             for link in links:
                 href = link.get('href')
                 if href and any(book in href for book in self.books) and not any(av in href for av in self.avoid):
+                    
+                    # 1. Create initial full URL
                     full_url = f"{self.base_url}{href}"
-                    if full_url not in unique_urls: # Deduplicate by the full URL
+                    # 2. Parse the URL into its components
+                    parsed_url = urlparse(full_url)
+                    # 3. Normalize the path: remove trailing slashes and make it lowercase
+                    path = parsed_url.path.rstrip('/').lower()
+                    # 4. Rebuild the URL without fragments (#) or queries (?)
+                    normalized_url = urlunparse(
+                        (parsed_url.scheme, parsed_url.netloc, path, 
+                         '', '', '') # Empty params, query, and fragment
+                    )
+
+                    if normalized_url  not in unique_urls: # Deduplicate by the full URL
+                        # 1. Get the filename part of the href (e.g., 'MN131.html')
+                        filename = os.path.basename(href)
+                        
+                        # 2. Split the filename from its extension to get the clean ID
+                        sutta_code, _ = os.path.splitext(filename) # -> ('MN131', '.html')
+
                         href_split = href.split("/")
-                        unique_urls[full_url] = {
+
+                        unique_urls[normalized_url] = {
+                            "sutta_id": sutta_code,
                             "book": href_split[2],
                             "sub_book": href_split[3] if len(href_split) > 4 else "None",
-                            "url": full_url,
+                            "url": full_url, # We save the original, clickable URL
                             "sutta_id_text": re.sub(r" +", " ", unicodedata.normalize("NFKD", link.get_text()))
                         }
 
@@ -117,7 +138,7 @@ class SuttaScraper:
 
         print(f"Scraping suttas and saving to {output_path}...")
 
-        sutta_counter = 1
+        suttas_saved_count = 1
 
         # Overwrite the file from scratch to ensure UID consistency
         with jsonlines.open(output_path, mode='w') as writer:
@@ -130,15 +151,15 @@ class SuttaScraper:
                     parsed_data = self._parse_sutta_page(response.text)
 
                     if parsed_data:
-                        final_record = {**link_info, **parsed_data, 'sutta_id': sutta_counter}
+                        final_record = {**link_info, **parsed_data, }
                         writer.write(final_record)
-                        sutta_counter += 1
+                        suttas_saved_count += 1
 
                     sleep(0.1)
 
                 except requests.RequestException as e:
                     print(f"Could not fetch {link_info['url']}: {e}")
-        print(f"A total of {sutta_counter-1} suttas were scraped and saved.")
+        print(f"A total of {suttas_saved_count-1} suttas were scraped and saved.")
 
 
 # --- This part is kept for potential direct execution or for clarity ---
