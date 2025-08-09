@@ -5,7 +5,7 @@ dhammatalks:
   avoid_in_url: ["histor", "endn", "bibl", "app", "ackn", "intro", "epi", "prol", "syll"]
 
 concept_extraction:
-  model_id: "deepseek-chat" # deepseek-chat or gemini-2.5-flash
+  model_id: "gemini-2.5-flash" # deepseek-chat or gemini-2.5-flash
   mode: "discovery" # fixed or discovery
   temperature: 1
   output_path_template: "data/03_kg_components/raw_concepts_{mode}_{model_id}.jsonl"
@@ -85,6 +85,173 @@ concept_extraction:
 
     ## FINAL INSTRUCTIONS
     Now, perform this analysis on the following Sutta text. Ensure your final output is ONLY the single, valid JSON object as shown in the example. Do not include any explanatory text or markdown code fences.
+
+second_look_extraction:
+  model_id: "gemini-1.5-flash"
+  temperature: 0.5
+  output_path_template: "data/03_kg_components/second_look_concepts_{model_id}.jsonl"
+  log_path_template: "logs/second_look_skipped_{model_id}.jsonl"
+  prompt: |
+    You are a meticulous quality control expert specializing in Buddhist philosophy. Your task is to review a Sutta text and a list of concepts that have already been extracted from it. Your goal is to identify any significant conceptual terms that were MISSED in the initial extraction.
+
+    ## Core Rules:
+    1.  **Text-Only Grounding:** All new concepts you identify MUST be directly present in the provided text.
+    2.  **Focus on MISSING Concepts:** Your primary goal is to find what was missed. Do not repeat any concepts from the "EXISTING CONCEPTS" list. If no significant concepts are missing, return an empty list.
+    3.  **Relevance Filter:** Extract only terms that are thematically significant. Ignore incidental details. Focus on figures, places, practices, mental states, and doctrinal concepts.
+    4.  **JSON Format:** The output must be a valid JSON object containing a list of the newly found concepts.
+
+    ## ANALYSIS INSTRUCTIONS
+
+    1.  Carefully read the full `SUTTA TEXT`.
+    2.  Review the `EXISTING CONCEPTS` list to understand what has already been identified.
+    3.  Analyze the `SUTTA TEXT` again, looking for any thematically important concepts that are NOT in the `EXISTING CONCEPTS` list.
+    4.  For each **newly identified, missing** concept, create a JSON object with three keys:
+        *   `"concept_name"`: A concise, normalized name for the concept.
+        *   `"concept_type"`: A concise, logical category for the concept. Use your judgment to create consistent types (e.g., Person, Place, DoctrinalConcept, MentalState, Practice). Use PascalCase.
+        *   `"evidence_quote"`: The specific sentence or phrase from the text that provides evidence for this concept.
+    5.  Combine all the **new** JSON objects into a single list.
+    6.  Place this list inside a parent JSON object under the key `"concepts"`. If no new concepts are found, this should be `"concepts": []`.
+
+    ## EXAMPLE
+
+    **SUTTA TEXT:**
+    "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove. There he said: 'Monks, the development of mindfulness leads to the abandoning of the five hindrances.'"
+
+    **EXISTING CONCEPTS:**
+    [
+      {{
+        "concept_name": "The Blessed One",
+        "concept_type": "Person",
+        "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove."
+      }},
+      {{
+        "concept_name": "Development of Mindfulness",
+        "concept_type": "Practice",
+        "evidence_quote": "Monks, the development of mindfulness leads to the abandoning of the five hindrances."
+      }},
+      {{
+        "concept_name": "The Five Hindrances",
+        "concept_type": "DoctrinalConcept",
+        "evidence_quote": "...leads to the abandoning of the five hindrances."
+      }}
+    ]
+
+    **CORRECT OUTPUT:**
+    (You noticed that "Sāvatthī" and "Jeta's Grove" were missed).
+    {{
+      "concepts": [
+        {{
+          "concept_name": "Sāvatthī",
+          "concept_type": "Place",
+          "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove."
+        }},
+        {{
+          "concept_name": "Jeta's Grove",
+          "concept_type": "Place",
+          "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove."
+        }}
+      ]
+    }}
+    ---
+
+    ## SUTTA FOR REVIEW
+
+    **SUTTA TEXT:**
+    {sutta_body}
+
+    ---
+
+    **EXISTING CONCEPTS:**
+    {existing_concepts}
+
+    ---
+
+    ## FINAL INSTRUCTIONS
+    Now, perform the review. Your final output must ONLY be the single, valid JSON object containing the list of newly found concepts. Do not include any explanatory text or markdown code fences.
+
+second_look_concept_extraction:
+  model_id: "gemini-1.5-flash"
+  temperature: 0.5
+  output_path_template: "data/03_kg_components/second_look_concepts_{model_id}.jsonl"
+  log_path_template: "logs/second_look_skipped_{model_id}.jsonl"
+  prompt: |
+    You are a meticulous quality control expert specializing in Buddhist philosophy. Your task is to review a Sutta text and a list of concepts that have already been extracted from it. Your goal is to identify any significant conceptual terms that were MISSED in the initial extraction.
+
+    ## Core Rules:
+    1.  **Text-Only Grounding:** All new concepts you identify MUST be directly present in the provided text.
+    2.  **Focus on MISSING Concepts:** Your primary goal is to find what was missed. Do not repeat any concepts from the "EXISTING CONCEPTS" list. If no significant concepts are missing, return an empty list.
+    3.  **Relevance Filter:** Extract only terms that are thematically significant. Ignore incidental details. Focus on figures, places, practices, mental states, and doctrinal concepts.
+    4.  **JSON Format:** The output must be a valid JSON object containing a list of the newly found concepts.
+
+    ## ANALYSIS INSTRUCTIONS
+
+    1.  Carefully read the full `SUTTA TEXT`.
+    2.  Review the `EXISTING CONCEPTS` list to understand what has already been identified.
+    3.  Analyze the `SUTTA TEXT` again, looking for any thematically important concepts that are NOT in the `EXISTING CONCEPTS` list.
+    4.  For each **newly identified, missing** concept, create a JSON object with three keys:
+        *   `"concept_name"`: A concise, normalized name for the concept.
+        *   `"concept_type"`: A concise, logical category for the concept. Use your judgment to create consistent types (e.g., Person, Place, DoctrinalConcept, MentalState, Practice). Use PascalCase.
+        *   `"evidence_quote"`: The specific sentence or phrase from the text that provides evidence for this concept.
+    5.  Combine all the **new** JSON objects into a single list.
+    6.  Place this list inside a parent JSON object under the key `"concepts"`. If no new concepts are found, this should be `"concepts": []`.
+
+    ## EXAMPLE
+
+    **SUTTA TEXT:**
+    "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove. There he said: 'Monks, the development of mindfulness leads to the abandoning of the five hindrances.'"
+
+    **EXISTING CONCEPTS:**
+    [
+      {{
+        "concept_name": "The Blessed One",
+        "concept_type": "Person",
+        "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove."
+      }},
+      {{
+        "concept_name": "Development of Mindfulness",
+        "concept_type": "Practice",
+        "evidence_quote": "Monks, the development of mindfulness leads to the abandoning of the five hindrances."
+      }},
+      {{
+        "concept_name": "The Five Hindrances",
+        "concept_type": "DoctrinalConcept",
+        "evidence_quote": "...leads to the abandoning of the five hindrances."
+      }}
+    ]
+
+    **CORRECT OUTPUT:**
+    (You noticed that "Sāvatthī" and "Jeta's Grove" were missed).
+    {{
+      "concepts": [
+        {{
+          "concept_name": "Sāvatthī",
+          "concept_type": "Place",
+          "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove."
+        }},
+        {{
+          "concept_name": "Jeta's Grove",
+          "concept_type": "Place",
+          "evidence_quote": "On one occasion the Blessed One was staying at Sāvatthī in Jeta’s Grove."
+        }}
+      ]
+    }}
+    ---
+
+    ## SUTTA FOR REVIEW
+
+    **SUTTA TEXT:**
+    {sutta_body}
+
+    ---
+
+    **EXISTING CONCEPTS:**
+    {existing_concepts}
+
+    ---
+
+    ## FINAL INSTRUCTIONS
+    Now, perform the review. Your final output must ONLY be the single, valid JSON object containing the list of newly found concepts. Do not include any explanatory text or markdown code fences.
+
 concept_normalization:
   mode: "hybrid" # hybrid (cluster on concept and evidence) or name (cluster on concept only)
   embedding_model_id: "all-MiniLM-L12-v2"
