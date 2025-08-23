@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 
 import jsonlines
@@ -98,7 +99,12 @@ class SecondLookConceptExtractor(BaseProcessor):
 
     def _process_item(self, item: dict) -> dict:
         """Core logic for reviewing one sutta."""
-        sutta_body = item.get("body")
+        sutta_body_raw = item.get("body")
+        if not sutta_body_raw or not sutta_body_raw.strip():
+            raise ValueError("Sutta body is empty.")
+
+        # Clean the text by replacing all whitespace sequences (tabs, newlines) with a single space
+        sutta_body = re.sub(r'\s+', ' ', sutta_body_raw).strip()
         existing_concepts = item.get("existing_concepts")
 
         if not sutta_body or not sutta_body.strip():

@@ -3,6 +3,7 @@ from utils.schemas import SuttaConceptsDiscovery, SuttaConceptsFixed
 from utils.llm_helpers import get_llm_client 
 from utils.config_helpers import sanitize_for_filename
 import json
+import re
 from pydantic import ValidationError
 from datetime import datetime
 
@@ -68,6 +69,9 @@ class ConceptExtractor(BaseProcessor):
     def _process_item(self, sutta: dict) -> dict:
         """Core logic for one sutta, moved from the old loop."""
         sutta_body = sutta.get("body")
+        # Strip whitespace
+        sutta_body = re.sub(r'\s+', ' ', sutta_body).strip()
+
         if not sutta_body or not sutta_body.strip():
             raise ValueError("Sutta body is empty.")
         
